@@ -97,6 +97,8 @@ android {
     preBuild.dependsOn copyLocalizedFiles
     preBuild.dependsOn copyGeneralData
     preBuild.dependsOn convertPO
+
+    assetPacks = [":base_assets"]
 }
 
 dependencies {

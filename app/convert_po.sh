@@ -4,7 +4,7 @@ export PATH="/opt/homebrew/bin:/usr/local/opt/gettext/bin:$PATH"
 
 cd `dirname $0`
 
-CELESTIA_ROOT=`pwd`/src/main/assets/CelestiaResources
+CELESTIA_ROOT=`pwd`/../base_assets/src/main/assets/CelestiaResources
 CELESTIA_REPO_ROOT=`pwd`/../../Celestia
 CELESTIA_CONTENT_REPO_ROOT=`pwd`/../../CelestiaContent
 CELESTIA_LOCALIZATION_REPO_ROOT=`pwd`/../../CelestiaLocalization
