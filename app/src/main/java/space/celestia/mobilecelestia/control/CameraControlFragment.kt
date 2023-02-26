@@ -70,6 +70,7 @@ class CameraControlFragment : NavigationFragment.SubFragment() {
         fun onCameraActionClicked(action: CameraControlAction)
         fun onCameraActionStepperTouchDown(action: CameraControlAction)
         fun onCameraActionStepperTouchUp(action: CameraControlAction)
+        fun onCameraControlObserverModeClicked()
     }
 
     companion object {

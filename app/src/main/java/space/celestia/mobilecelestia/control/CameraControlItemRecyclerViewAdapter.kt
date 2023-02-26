@@ -33,6 +33,11 @@ class CameraControlStepperItem(val title: String, val left: CameraControlAction,
     }
 }
 
+class CameraObserverModeItem : RecyclerViewItem {
+    val title: String
+        get() = CelestiaString("Observer Mode", "")
+}
+
 class CameraControlReverseDirectionItem : RecyclerViewItem {
     val title: String
         get() = CelestiaString("Reverse Direction", "")
@@ -41,7 +46,8 @@ class CameraControlReverseDirectionItem : RecyclerViewItem {
 private val controlSections by lazy {
     listOf(
         CommonSectionV2(CameraControlStepperItem.staticItems, footer =  CelestiaString("Long press on stepper to change orientation.", "")),
-        CommonSectionV2(listOf(CameraControlReverseDirectionItem()), null)
+        CommonSectionV2(listOf(CameraObserverModeItem()), null),
+        CommonSectionV2(listOf(CameraControlReverseDirectionItem()), null),
     )
 }
 
@@ -64,6 +70,8 @@ class CameraControlItemRecyclerViewAdapter(
     override fun onItemSelected(item: RecyclerViewItem) {
         if (item is CameraControlReverseDirectionItem) {
             listener?.onCameraActionClicked(CameraControlAction.Reverse)
+        } else if (item is CameraObserverModeItem) {
+            listener?.onCameraControlObserverModeClicked()
         }
     }
 
@@ -71,7 +79,7 @@ class CameraControlItemRecyclerViewAdapter(
         if (item is CameraControlStepperItem) {
             return STEPPER
         }
-        if (item is CameraControlReverseDirectionItem) {
+        if (item is CameraControlReverseDirectionItem || item is CameraObserverModeItem) {
             return TEXT
         }
         return super.itemViewType(item)
@@ -97,6 +105,12 @@ class CameraControlItemRecyclerViewAdapter(
         }
         if (item is CameraControlReverseDirectionItem && holder is CommonTextViewHolder) {
             holder.title.text = item.title
+            holder.accessory.visibility = View.GONE
+            return
+        }
+        if (item is CameraObserverModeItem && holder is CommonTextViewHolder) {
+            holder.title.text = item.title
+            holder.accessory.visibility = View.VISIBLE
             return
         }
         super.bindVH(holder, item)

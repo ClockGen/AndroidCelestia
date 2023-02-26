@@ -1222,6 +1222,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         lifecycleScope.launch(executor.asCoroutineDispatcher()) { appCore.keyUp(action.value) }
     }
 
+    override fun onCameraControlObserverModeClicked() {
+        val frag = supportFragmentManager.findFragmentById(R.id.bottom_sheet) as? CameraControlContainerFragment ?: return
+        frag.pushFragment(ObserverModeFragment.newInstance())
+    }
+
     override fun onHelpActionSelected(action: HelpAction) {
         when (action) {
             HelpAction.RunDemo -> {
