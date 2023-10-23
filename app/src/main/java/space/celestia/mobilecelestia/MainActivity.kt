@@ -22,6 +22,8 @@ import android.os.Bundle
 import android.provider.DocumentsContract
 import android.util.LayoutDirection
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -46,6 +48,7 @@ import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -62,7 +65,12 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import space.celestia.celestia.*
 import space.celestia.mobilecelestia.browser.*
+import space.celestia.mobilecelestia.celestia.CelestiaControlAction
+import space.celestia.mobilecelestia.celestia.CelestiaControlView
 import space.celestia.mobilecelestia.celestia.CelestiaFragment
+import space.celestia.mobilecelestia.celestia.CelestiaInteraction
+import space.celestia.mobilecelestia.celestia.CelestiaTapButton
+import space.celestia.mobilecelestia.celestia.CelestiaToggleButton
 import space.celestia.mobilecelestia.common.*
 import space.celestia.mobilecelestia.control.*
 import space.celestia.mobilecelestia.di.AppSettings
@@ -100,6 +108,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.max
 import kotlin.system.exitProcess
 
 @AndroidEntryPoint
@@ -169,6 +178,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         fun getAppStatusReporter(): AppStatusReporter
     }
 
+    private var interactionMode = CelestiaInteraction.InteractionMode.Object
     private var interactionBlocked = false
 
     private var readyForInteraction = false
@@ -281,6 +291,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         ViewCompat.setOnApplyWindowInsetsListener( findViewById<View>(android.R.id.content).rootView) { _, insets ->
             updateConfiguration(resources.configuration, insets)
             return@setOnApplyWindowInsetsListener insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById<View>(R.id.bottom_action_bar_container)) { _, insets ->
+            // TODO: the suggested replacement for the deprecated methods does not work
+            val builder = WindowInsetsCompat.Builder(insets).setSystemWindowInsets(Insets.of(insets.systemWindowInsetLeft , insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.stableInsetBottom))
+            return@setOnApplyWindowInsetsListener builder.build()
         }
 
         findViewById<View>(R.id.close_button).setOnClickListener {
@@ -414,11 +430,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     private fun updateConfiguration(configuration: Configuration, windowInsets: WindowInsetsCompat?) {
         val isRTL = configuration.layoutDirection == LayoutDirection.RTL
 
-        val safeInsets = EdgeInsets(
+        val bottomActionBar = findViewById<BottomAppBar>(R.id.bottom_action_bar)
+        val actionBarAtBottom = configuration.screenWidthDp <= SheetLayout.sheetMaxFullWidthDp
+        bottomActionBar.isVisible = actionBarAtBottom
+
+        val baseSafeInsets = EdgeInsets(
             EdgeInsets(windowInsets),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) RoundedCorners(windowInsets) else RoundedCorners(0, 0, 0, 0),
             configuration
         )
+        val safeInsets = EdgeInsets(left = baseSafeInsets.left, top = baseSafeInsets.top, right = baseSafeInsets.right, bottom = max(baseSafeInsets.bottom, if (bottomActionBar.isVisible) bottomActionBar.height else 0))
 
         val safeInsetStart = if (isRTL) safeInsets.right else safeInsets.left
         val safeInsetEnd = if (isRTL) safeInsets.left else safeInsets.right
@@ -431,6 +452,15 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         toolbarSafeAreaParams.bottomMargin = safeInsets.bottom
         toolbarOverlay.requestLayout()
 
+        val actionBarOverlay = findViewById<ViewGroup>(R.id.action_bar_overlay)
+        val actionBarSafeAreaParams = findViewById<FrameLayout>(R.id.action_bar_safe_area).layoutParams as ConstraintLayout.LayoutParams
+        actionBarSafeAreaParams.leftMargin = if (isRTL) safeInsetEnd else safeInsetStart
+        actionBarSafeAreaParams.rightMargin = if (isRTL) safeInsetStart else safeInsetEnd
+        actionBarSafeAreaParams.topMargin = safeInsets.top
+        actionBarSafeAreaParams.bottomMargin = safeInsets.bottom
+        actionBarOverlay.isVisible = !actionBarAtBottom
+        actionBarOverlay.requestLayout()
+
         val drawerParams = findViewById<View>(R.id.drawer).layoutParams
         drawerParams.width = resources.getDimensionPixelSize(R.dimen.toolbar_default_width) + safeInsetEnd
 
@@ -439,6 +469,28 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         bottomSheetContainer.requestLayout()
 
         (supportFragmentManager.findFragmentById(R.id.celestia_fragment_container) as? CelestiaFragment)?.handleInsetsChanged(safeInsets)
+
+        updateActionBars(findViewById(R.id.bottom_action_bar), findViewById(R.id.action_bar))
+    }
+
+    private fun updateActionBars(bottomAppBar: BottomAppBar?, controlView: CelestiaControlView?) {
+        if (controlView != null) {
+            val buttonItems = listOf(
+                CelestiaToggleButton(R.drawable.control_mode_combined, CelestiaControlAction.ToggleModeToObject, CelestiaControlAction.ToggleModeToCamera, contentDescription = CelestiaString("Toggle Interaction Mode", ""), interactionMode == CelestiaInteraction.InteractionMode.Camera),
+                CelestiaTapButton(R.drawable.control_info, CelestiaControlAction.Info, CelestiaString("Get Info", "")),
+                CelestiaTapButton(R.drawable.control_search, CelestiaControlAction.Search, CelestiaString("Search", "")),
+                CelestiaTapButton(R.drawable.control_action_menu, CelestiaControlAction.ShowMenu, CelestiaString("Menu", "")),
+                CelestiaTapButton(R.drawable.toolbar_exit, CelestiaControlAction.Hide, CelestiaString("Hide", ""))
+            )
+            controlView.buttons = buttonItems
+        }
+        if (bottomAppBar != null) {
+            bottomAppBar.menu.clear()
+            bottomAppBar.menu.add(Menu.NONE, MODE_MENU_ITEM_ID, Menu.NONE, CelestiaString("Toggle Interaction Mode", ""),).setIcon(R.drawable.control_mode_combined).setChecked(interactionMode == CelestiaInteraction.InteractionMode.Camera).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            bottomAppBar.menu.add(Menu.NONE, INFO_MENU_ITEM_ID, Menu.NONE, CelestiaString("Get Info", "")).setIcon(R.drawable.control_info).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            bottomAppBar.menu.add(Menu.NONE, SEARCH_MENU_ITEM_ID, Menu.NONE, CelestiaString("Search", "")).setIcon(R.drawable.control_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            bottomAppBar.menu.add(Menu.NONE, MENU_MENU_ITEM_ID, Menu.NONE, CelestiaString("Menu", "")).setIcon(R.drawable.control_action_menu).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
     }
 
     private fun loadExternalConfig(savedInstanceState: Bundle?) {
@@ -2336,6 +2388,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         private var availableLanguageCodes: List<String> = listOf()
 
         private val supportedScriptTypes = listOf("cel", "celx")
+
+        private const val INFO_MENU_ITEM_ID = 100
+        private const val SEARCH_MENU_ITEM_ID = 101
+        private const val MENU_MENU_ITEM_ID = 102
+        private const val MODE_MENU_ITEM_ID = 103
 
         init {
             System.loadLibrary("nativecrashhandler")
