@@ -486,7 +486,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         }
         if (bottomAppBar != null) {
             bottomAppBar.menu.clear()
-            bottomAppBar.menu.add(Menu.NONE, MODE_MENU_ITEM_ID, Menu.NONE, CelestiaString("Toggle Interaction Mode", ""),).setIcon(R.drawable.control_mode_combined).setChecked(interactionMode == CelestiaInteraction.InteractionMode.Camera).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            bottomAppBar.menu.add(Menu.NONE, MODE_MENU_ITEM_ID, Menu.NONE, CelestiaString("Toggle Interaction Mode", ""),).setIcon(if (interactionMode == CelestiaInteraction.InteractionMode.Camera) R.drawable.control_mode_camera else R.drawable.control_mode_object).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
             bottomAppBar.menu.add(Menu.NONE, INFO_MENU_ITEM_ID, Menu.NONE, CelestiaString("Get Info", "")).setIcon(R.drawable.control_info).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
             bottomAppBar.menu.add(Menu.NONE, SEARCH_MENU_ITEM_ID, Menu.NONE, CelestiaString("Search", "")).setIcon(R.drawable.control_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
             bottomAppBar.menu.add(Menu.NONE, MENU_MENU_ITEM_ID, Menu.NONE, CelestiaString("Menu", "")).setIcon(R.drawable.control_action_menu).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
@@ -571,6 +571,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
                 .commitAllowingStateLoss()
         }
 
+        configureActionBarActions()
+
         val weakSelf = WeakReference(this)
         onBackPressedDispatcher.addCallback(object: OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -594,6 +596,70 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         if (!initialURLCheckPerformed) {
             initialURLCheckPerformed = true
             openURLOrScriptOrGreeting()
+        }
+    }
+
+    private fun configureActionBarActions() {
+        val weakSelf = WeakReference(this)
+        findViewById<CelestiaControlView>(R.id.action_bar).listener = object: CelestiaControlView.Listener {
+            override fun didTapAction(action: CelestiaControlAction) {
+                val self = weakSelf.get() ?: return
+                when (action) {
+                    CelestiaControlAction.Info -> {
+                        self.celestiaFragmentDidRequestObjectInfo()
+                    }
+                    CelestiaControlAction.Search -> {
+                        self.celestiaFragmentDidRequestSearch()
+                    }
+                    CelestiaControlAction.ShowMenu -> {
+                        self.celestiaFragmentDidRequestActionMenu()
+                    }
+                    else -> {}
+                }
+            }
+
+            override fun didStartPressingAction(action: CelestiaControlAction) {}
+
+            override fun didEndPressingAction(action: CelestiaControlAction) {}
+
+            override fun didToggleToMode(action: CelestiaControlAction) {
+                val self = weakSelf.get() ?: return
+                val newInteractionMode = when (action) {
+                    CelestiaControlAction.ToggleModeToCamera -> CelestiaInteraction.InteractionMode.Camera
+                    CelestiaControlAction.ToggleModeToObject -> CelestiaInteraction.InteractionMode.Object
+                    else -> null
+                } ?: return
+                self.interactionMode = newInteractionMode
+                self.showToast(if (newInteractionMode == CelestiaInteraction.InteractionMode.Camera) CelestiaString("Switched to camera mode", "") else CelestiaString("Switched to object mode", ""), Toast.LENGTH_SHORT)
+                self.updateActionBars(findViewById(R.id.bottom_action_bar), null)
+            }
+        }
+        findViewById<BottomAppBar>(R.id.bottom_action_bar).setOnMenuItemClickListener { item ->
+            val self = weakSelf.get() ?: return@setOnMenuItemClickListener false
+            val handled = when (item.itemId) {
+                MODE_MENU_ITEM_ID -> {
+                    val newInteractionMode = self.interactionMode.next
+                    self.interactionMode = newInteractionMode
+                    item.setIcon(if (newInteractionMode == CelestiaInteraction.InteractionMode.Camera) R.drawable.control_mode_camera else R.drawable.control_mode_object)
+                    self.showToast(if (newInteractionMode == CelestiaInteraction.InteractionMode.Camera) CelestiaString("Switched to camera mode", "") else CelestiaString("Switched to object mode", ""), Toast.LENGTH_SHORT)
+                    self.updateActionBars(null, self.findViewById(R.id.action_bar))
+                    true
+                }
+                INFO_MENU_ITEM_ID -> {
+                    self.celestiaFragmentDidRequestObjectInfo()
+                    true
+                }
+                SEARCH_MENU_ITEM_ID -> {
+                    self.celestiaFragmentDidRequestSearch()
+                    true
+                }
+                MENU_MENU_ITEM_ID -> {
+                    self.celestiaFragmentDidRequestActionMenu()
+                    true
+                }
+                else -> false
+            }
+            return@setOnMenuItemClickListener handled
         }
     }
 
@@ -1736,7 +1802,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         showToolbar()
     }
 
-    override fun celestiaFragmentDidRequestObjectInfo() {
+    fun celestiaFragmentDidRequestObjectInfo() {
         lifecycleScope.launch {
             val selection =
                 withContext(executor.asCoroutineDispatcher()) { appCore.simulation.selection }
@@ -1750,7 +1816,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         showInfo(selection)
     }
 
-    override fun celestiaFragmentDidRequestSearch() {
+    fun celestiaFragmentDidRequestSearch() {
         showSearch()
     }
 

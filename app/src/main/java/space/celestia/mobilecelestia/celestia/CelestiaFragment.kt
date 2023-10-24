@@ -47,7 +47,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.Listener, AppStatusReporter.Listener, AppCore.ContextMenuHandler, AppCore.FatalErrorHandler {
+class CelestiaFragment: Fragment(), SurfaceHolder.Callback, AppStatusReporter.Listener, AppCore.ContextMenuHandler, AppCore.FatalErrorHandler {
     private var activity: Activity? = null
 
     @Inject
@@ -67,8 +67,6 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
     // MARK: GL View
     private lateinit var glView: CelestiaView
     private lateinit var viewInteraction: CelestiaInteraction
-
-    private var currentControlViewID = R.id.active_control_view_container
 
     // Parameters
     private var pathToLoad: String? = null
@@ -97,15 +95,12 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
     private var loadSuccess = false
     private var haveSurface = false
     private var interactionMode = CelestiaInteraction.InteractionMode.Object
-    private lateinit var controlView: CelestiaControlView
 
     private var isContextMenuEnabled = true
     private var sensitivity = 10.0f
 
     interface Listener {
         fun celestiaFragmentDidRequestActionMenu()
-        fun celestiaFragmentDidRequestObjectInfo()
-        fun celestiaFragmentDidRequestSearch()
         fun celestiaFragmentDidRequestObjectInfo(selection: Selection)
         fun provideFallbackConfigFilePath(): String
         fun provideFallbackDataDirectoryPath(): String
@@ -161,9 +156,6 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
         appStatusReporter.register(this)
 
         val view = inflater.inflate(R.layout.fragment_celestia, container, false)
-        controlView = view.findViewById(R.id.control_view)
-        controlView.listener = this
-
         if (!hasSetRenderer) {
             appCore.setRenderer(renderer)
             renderer.setEngineStartedListener {
@@ -236,22 +228,11 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
 
     fun handleInsetsChanged(newInsets: EdgeInsets) {
         savedInsets = newInsets
-        val thisView = view ?: return
         if (!loadSuccess) { return }
 
         val insets = savedInsets.scaleBy(scaleFactor)
         lifecycleScope.launch(executor.asCoroutineDispatcher()) {
             appCore.setSafeAreaInsets(insets)
-        }
-
-        val ltr = resources.configuration.layoutDirection != View.LAYOUT_DIRECTION_RTL
-        val safeInsetEnd = if (ltr) newInsets.right else newInsets.left
-
-        val controlView = thisView.findViewById<FrameLayout>(currentControlViewID) ?: return
-        val params = controlView.layoutParams as? ConstraintLayout.LayoutParams
-        if (params != null) {
-            params.marginEnd = resources.getDimensionPixelOffset(R.dimen.control_view_container_margin_end) + safeInsetEnd
-            controlView.layoutParams = params
         }
     }
 
@@ -384,16 +365,6 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
     }
 
     private fun setUpInteractions() {
-        // Set up control buttons
-        val items = listOf(
-            CelestiaToggleButton(R.drawable.control_mode_combined, CelestiaControlAction.ToggleModeToObject, CelestiaControlAction.ToggleModeToCamera, contentDescription = CelestiaString("Toggle Interaction Mode", ""), interactionMode == CelestiaInteraction.InteractionMode.Camera),
-            CelestiaTapButton(R.drawable.control_info, CelestiaControlAction.Info, CelestiaString("Get Info", "")),
-            CelestiaTapButton(R.drawable.control_search, CelestiaControlAction.Search, CelestiaString("Search", "")),
-            CelestiaTapButton(R.drawable.control_action_menu, CelestiaControlAction.ShowMenu, CelestiaString("Menu", "")),
-            CelestiaTapButton(R.drawable.toolbar_exit, CelestiaControlAction.Hide, CelestiaString("Hide", ""))
-        )
-        controlView.buttons = items
-
         glView.isReady = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && isContextMenuEnabled) {
             glView.isContextClickable = true
@@ -561,62 +532,40 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
         renderer.setSurface(null)
     }
 
-    // Actions
-    override fun didTapAction(action: CelestiaControlAction) {
-        when (action) {
-            CelestiaControlAction.ShowMenu -> {
-                listener?.celestiaFragmentDidRequestActionMenu()
-            }
-            CelestiaControlAction.Info -> {
-                listener?.celestiaFragmentDidRequestObjectInfo()
-            }
-            CelestiaControlAction.Search -> {
-                listener?.celestiaFragmentDidRequestSearch()
-            }
-            CelestiaControlAction.Hide -> {
-                hideControlViewIfNeeded()
-            }
-            CelestiaControlAction.Show -> {
-                showControlViewIfNeeded()
-            }
-            else -> {}
-        }
-    }
-
     private fun hideControlView() {
-        val controlView = view?.findViewById<FrameLayout>(R.id.active_control_view_container) ?: return
-        if (hideAnimator != null) return
-        showAnimator?.let {
-            it.cancel()
-            showAnimator = null
-        }
-
-        val animator = ObjectAnimator.ofFloat(controlView, View.ALPHA, 1f, 0f)
-        animator.duration = 200
-        animator.doOnEnd {
-            hideAnimator = null
-            isControlViewVisible = false
-        }
-        animator.start()
-        hideAnimator = animator
+//        val controlView = view?.findViewById<FrameLayout>(R.id.active_control_view_container) ?: return
+//        if (hideAnimator != null) return
+//        showAnimator?.let {
+//            it.cancel()
+//            showAnimator = null
+//        }
+//
+//        val animator = ObjectAnimator.ofFloat(controlView, View.ALPHA, 1f, 0f)
+//        animator.duration = 200
+//        animator.doOnEnd {
+//            hideAnimator = null
+//            isControlViewVisible = false
+//        }
+//        animator.start()
+//        hideAnimator = animator
     }
 
     private fun showControlView() {
-        val controlView = view?.findViewById<FrameLayout>(R.id.active_control_view_container) ?: return
-        if (showAnimator != null) return
-        hideAnimator?.let {
-            it.cancel()
-            hideAnimator = null
-        }
-
-        val animator = ObjectAnimator.ofFloat(controlView, View.ALPHA, 0f, 1f)
-        animator.duration = 200
-        animator.doOnEnd {
-            showAnimator = null
-            isControlViewVisible = true
-        }
-        animator.start()
-        showAnimator = animator
+//        val controlView = view?.findViewById<FrameLayout>(R.id.active_control_view_container) ?: return
+//        if (showAnimator != null) return
+//        hideAnimator?.let {
+//            it.cancel()
+//            hideAnimator = null
+//        }
+//
+//        val animator = ObjectAnimator.ofFloat(controlView, View.ALPHA, 0f, 1f)
+//        animator.duration = 200
+//        animator.doOnEnd {
+//            showAnimator = null
+//            isControlViewVisible = true
+//        }
+//        animator.start()
+//        showAnimator = animator
     }
 
     private fun showControlViewIfNeeded() {
@@ -630,26 +579,6 @@ class CelestiaFragment: Fragment(), SurfaceHolder.Callback, CelestiaControlView.
             hideControlView()
         }
     }
-
-    override fun didToggleToMode(action: CelestiaControlAction) {
-        when (action) {
-            CelestiaControlAction.ToggleModeToCamera -> {
-                interactionMode = CelestiaInteraction.InteractionMode.Camera
-                viewInteraction.setInteractionMode(CelestiaInteraction.InteractionMode.Camera)
-                activity?.showToast(CelestiaString("Switched to camera mode", ""), Toast.LENGTH_SHORT)
-            }
-            CelestiaControlAction.ToggleModeToObject -> {
-                interactionMode = CelestiaInteraction.InteractionMode.Object
-                viewInteraction.setInteractionMode(CelestiaInteraction.InteractionMode.Object)
-                activity?.showToast(CelestiaString("Switched to object mode", ""), Toast.LENGTH_SHORT)
-            }
-            else -> {}
-        }
-    }
-
-    override fun didStartPressingAction(action: CelestiaControlAction) {}
-
-    override fun didEndPressingAction(action: CelestiaControlAction) {}
 
     override fun requestContextMenu(x: Float, y: Float, selection: Selection) {
         if (!isContextMenuEnabled)
