@@ -56,6 +56,128 @@ import java.io.File
 import java.util.Locale
 import javax.inject.Inject
 
+@Composable
+fun LanguageScreen() {
+
+    val dataDirectory = appSettings[PreferenceManager.PredefinedKey.DataDirPath] ?: defaultFilePaths.dataDirectoryPath
+    val localeDirectory = File("${dataDirectory}/locale")
+    if (localeDirectory.exists()) {
+        val languageCodes = ArrayList((localeDirectory.listFiles { file ->
+            return@listFiles file.isDirectory
+        } ?: arrayOf()).map { file -> file.name })
+        availableLanguageCodes = languageCodes.sorted()
+    }
+
+    val substitutionList = mapOf(
+        "zh_CN" to "zh-Hans",
+        "zh_TW" to "zh-Hant"
+    )
+
+    fun getLocale(locale: String): Locale {
+        val components = locale.split("_")
+        if (components.size == 1)
+            return Locale(components[0])
+        if (components.size == 2)
+            return Locale(components[0], components[1])
+        return Locale(components[0], components[1], components[2])
+    }
+
+    fun getLocalizedLanguageName(locale: String): String {
+        val lang = substitutionList[locale] ?: locale
+        val loc1 = Locale.forLanguageTag(lang)
+        val name1 = loc1.getDisplayName(loc1)
+        if (name1.isNotEmpty())
+            return name1
+        val loc2 = getLocale(lang)
+        return loc2.getDisplayName(loc2)
+    }
+
+    val internalViewModifier = Modifier
+        .fillMaxWidth()
+        .padding(
+            horizontal = dimensionResource(id = R.dimen.list_item_medium_margin_horizontal),
+            vertical = dimensionResource(id = R.dimen.common_page_medium_gap_vertical),
+        )
+    var currentOverrideLanguage: String? by remember {
+        mutableStateOf(currentOverrideLanguage())
+    }
+    val nestedScrollInterop = rememberNestedScrollInteropConnection()
+    LazyColumn(modifier = Modifier.nestedScroll(nestedScrollInterop), contentPadding = WindowInsets.systemBars.asPaddingValues()) {
+        item {
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_short)))
+            TextRow(primaryText = CelestiaString("Current Language", ""), secondaryText = getLocalizedLanguageName(currentLanguage()))
+        }
+
+        if (availableLanguageCodes.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_short)))
+                Separator()
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_short)))
+            }
+            items(items = availableLanguageCodes) {
+                RadioButtonRow(primaryText = getLocalizedLanguageName(it), selected = currentOverrideLanguage == it) {
+                    currentOverrideLanguage = it
+                    setOverrideLanguage(it)
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_short)))
+            Separator()
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_short)))
+        }
+
+        item {
+            FilledTonalButton(modifier = internalViewModifier, onClick = {
+                currentOverrideLanguage = null
+                setOverrideLanguage(null)
+            }) {
+                Text(text = CelestiaString("Reset to Default", ""))
+            }
+            Footer(text = CelestiaString("Configuration will take effect after a restart.", ""))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.list_spacing_tall)))
+        }
+    }
+}
+
+private fun setOverrideLanguage(language: String?) {
+    if (language == null) {
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+    } else {
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.forLanguageTags(
+                language.uppercase(
+                    Locale.US
+                ).replace("_", "-")
+            )
+        )
+    }
+}
+
+private fun currentOverrideLanguage(availableLanguageCodes: List<String>): String? {
+    val overrideLocale = AppCompatDelegate.getApplicationLocales()
+    if (overrideLocale.isEmpty)
+        return null
+
+    // If set from system picker it is possible that the override locale
+    // is not exactly the one supported by Celestia, we check a full
+    // match with language_region first and then language only
+    val locale = Locale.forLanguageTag(overrideLocale.toLanguageTags())
+    if (locale.country.isNotEmpty()) {
+        val potential = "${locale.language}_${locale.country}"
+        if (availableLanguageCodes.contains(potential))
+            return potential
+    }
+    if (availableLanguageCodes.contains(locale.language))
+        return locale.language
+    return null
+}
+
+private fun currentLanguage(): String {
+    return AppCore.getLanguage()
+}
+
 @AndroidEntryPoint
 class SettingsLanguageFragment : NavigationFragment.SubFragment() {
     @AppSettings

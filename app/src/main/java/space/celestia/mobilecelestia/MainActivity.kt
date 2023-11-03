@@ -32,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.addListener
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
@@ -1327,7 +1328,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     override fun onMainSettingItemSelected(item: SettingsItem) {
         val frag = supportFragmentManager.findFragmentById(R.id.bottom_sheet)
         if (frag is SettingsFragment) {
-            frag.pushMainSettingItem(item)
+//            frag.pushMainSettingItem(item)
         }
     }
 
