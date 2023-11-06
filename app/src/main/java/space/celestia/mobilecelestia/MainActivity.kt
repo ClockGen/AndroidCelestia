@@ -109,8 +109,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     HelpFragment.Listener,
     FavoriteFragment.Listener,
     FavoriteItemFragment.Listener,
-    SettingsItemFragment.Listener,
-    AboutFragment.Listener,
     AppStatusReporter.Listener,
     CelestiaFragment.Listener,
     EventFinderInputFragment.Listener,
@@ -119,7 +117,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     DestinationDetailFragment.Listener,
     GoToContainerFragment.Listener,
     ResourceItemFragment.Listener,
-    SettingsRefreshRateFragment.Listener,
+    SettingsFragment.Listener,
     CommonWebFragment.Listener,
     SubscriptionBackingFragment.Listener {
 
@@ -1307,13 +1305,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
             if (frag is FavoriteFragment) {
                 frag.rename(item, text)
             }
-        }
-    }
-
-    override fun onMainSettingItemSelected(item: SettingsItem) {
-        val frag = supportFragmentManager.findFragmentById(R.id.bottom_sheet)
-        if (frag is SettingsFragment) {
-            frag.pushMainSettingItem(item)
         }
     }
 
