@@ -83,7 +83,7 @@ import space.celestia.mobilecelestia.settings.*
 import space.celestia.mobilecelestia.toolbar.ToolbarAction
 import space.celestia.mobilecelestia.toolbar.ToolbarFragment
 import space.celestia.mobilecelestia.travel.GoToContainerFragment
-import space.celestia.mobilecelestia.travel.GoToInputFragment
+import space.celestia.mobilecelestia.travel.GoToData
 import space.celestia.mobilecelestia.utils.*
 import java.io.File
 import java.io.IOException
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     EventFinderResultFragment.Listener,
     InstalledAddonListFragment.Listener,
     DestinationDetailFragment.Listener,
-    GoToInputFragment.Listener,
+    GoToContainerFragment.Listener,
     ResourceItemFragment.Listener,
     SettingsRefreshRateFragment.Listener,
     CommonWebFragment.Listener,
@@ -1868,8 +1868,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         }
     }
 
-    private fun showGoTo(data: GoToInputFragment.GoToData? = null) = lifecycleScope.launch {
-        val inputData = data ?: GoToInputFragment.GoToData(
+    private fun showGoTo(data: GoToData? = null) = lifecycleScope.launch {
+        val inputData = data ?: GoToData(
             objectName = AppCore.getLocalizedString("Earth", "celestia-data"),
             objectPath = "Sol/Earth",
             0.0f,
@@ -1880,7 +1880,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
         showBottomSheetFragment(GoToContainerFragment.newInstance(inputData))
     }
 
-    override fun onGoToObject(goToData: GoToInputFragment.GoToData) {
+    override fun onGoToObject(goToData: GoToData) {
         val selection = appCore.simulation.findObject(goToData.objectPath)
         if (selection.isEmpty) {
             showAlert(CelestiaString("Object not found", ""))
