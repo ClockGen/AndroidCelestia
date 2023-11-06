@@ -86,6 +86,8 @@ class SettingsFragment : Fragment() {
             ROUTE_SETTINGS_LANGUAGE -> CelestiaString("Language", "")
             ROUTE_SETTINGS_REFRESH_RATE -> CelestiaString("Frame Rate", "")
             ROUTE_SETTINGS_ABOUT -> CelestiaString("About", "")
+            ROUTE_SETTINGS_CURRENT_TIME -> CelestiaString("Current Time", "")
+            ROUTE_SETTINGS_DATA_LOCATION -> CelestiaString("Data Location", "")
             else -> "Unknown"
         }
     }
@@ -100,6 +102,12 @@ class SettingsFragment : Fragment() {
             }
             is SettingsAboutItem -> {
                 navController.navigate(ROUTE_SETTINGS_ABOUT)
+            }
+            is SettingsCurrentTimeItem -> {
+                navController.navigate(ROUTE_SETTINGS_CURRENT_TIME)
+            }
+            is SettingsDataLocationItem -> {
+                navController.navigate(ROUTE_SETTINGS_DATA_LOCATION)
             }
         }
     }
@@ -155,6 +163,12 @@ class SettingsFragment : Fragment() {
                     AboutScreen(paddingValues = paddingValues, urlHandler = {
                         listener?.onAboutURLSelected(it)
                     }, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
+                }
+                composable(ROUTE_SETTINGS_CURRENT_TIME) {
+                    TimeSettingsScreen(paddingValues = paddingValues, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
+                }
+                composable(ROUTE_SETTINGS_DATA_LOCATION) {
+                    DataLocationSettingsScreen(paddingValues = paddingValues, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
                 }
             }
         }
@@ -222,5 +236,7 @@ class SettingsFragment : Fragment() {
         private const val ROUTE_SETTINGS_LANGUAGE = "settings/language"
         private const val ROUTE_SETTINGS_REFRESH_RATE = "settings/refresh_rate"
         private const val ROUTE_SETTINGS_ABOUT = "settings/about"
+        private const val ROUTE_SETTINGS_CURRENT_TIME = "settings/current_time"
+        private const val ROUTE_SETTINGS_DATA_LOCATION = "settings/data_location"
     }
 }
