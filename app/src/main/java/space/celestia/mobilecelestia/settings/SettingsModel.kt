@@ -342,7 +342,7 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
         SettingsSwitchItem(SettingsKey.ShowNebulae),
         SettingsSwitchItem(SettingsKey.ShowGlobulars),
         SettingsSwitchItem(SettingsKey.ShowOpenClusters)
-    )),
+    ), "objects"),
     SettingsCommonItem.create(CelestiaString("Features", ""), listOf(
         SettingsSwitchItem(SettingsKey.ShowAtmospheres),
         SettingsSwitchItem(SettingsKey.ShowCloudMaps),
@@ -352,7 +352,7 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
         SettingsSwitchItem(SettingsKey.ShowRingShadows),
         SettingsSwitchItem(SettingsKey.ShowCometTails),
         SettingsSwitchItem(SettingsKey.ShowEclipseShadows)
-    )),
+    ), "features"),
     SettingsCommonItem(CelestiaString("Orbits", ""), listOf(
         SettingsCommonItem.Section(listOf(
             SettingsSwitchItem(SettingsKey.ShowOrbits, SettingsSwitchItem.Representation.Switch),
@@ -369,7 +369,7 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
             SettingsSwitchItem(SettingsKey.ShowCometOrbits, SettingsSwitchItem.Representation.Checkmark),
             SettingsSwitchItem(SettingsKey.ShowSpacecraftOrbits, SettingsSwitchItem.Representation.Checkmark)
         )),
-    )),
+    ), "orbits"),
     SettingsCommonItem(CelestiaString("Grids", ""), listOf(
         SettingsCommonItem.Section(listOf(
             SettingsSwitchItem(SettingsKey.ShowCelestialSphere, SettingsSwitchItem.Representation.Checkmark),
@@ -380,13 +380,13 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
         SettingsCommonItem.Section(listOf(
             SettingsSwitchItem(SettingsKey.ShowEcliptic, SettingsSwitchItem.Representation.Checkmark),
         )),
-    )),
+    ), "grids"),
     SettingsCommonItem.create(CelestiaString("Constellations", ""), listOf(
         SettingsSwitchItem(SettingsKey.ShowDiagrams, SettingsSwitchItem.Representation.Checkmark),
         SettingsSwitchItem(SettingsKey.ShowConstellationLabels, SettingsSwitchItem.Representation.Checkmark),
         SettingsSwitchItem(SettingsKey.ShowLatinConstellationLabels, SettingsSwitchItem.Representation.Checkmark),
         SettingsSwitchItem(SettingsKey.ShowBoundaries, SettingsSwitchItem.Representation.Checkmark),
-    )),
+    ), "constellations"),
     SettingsCommonItem.create(CelestiaString("Object Labels", ""), listOf(
         SettingsSwitchItem(SettingsKey.ShowStarLabels),
         SettingsSwitchItem(SettingsKey.ShowPlanetLabels),
@@ -400,7 +400,7 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
         SettingsSwitchItem(SettingsKey.ShowNebulaLabels),
         SettingsSwitchItem(SettingsKey.ShowGlobularLabels),
         SettingsSwitchItem(SettingsKey.ShowOpenClusterLabels)
-    )),
+    ), "object_labels"),
     SettingsCommonItem(CelestiaString("Locations", ""), listOf(
         SettingsCommonItem.Section(listOf(
             SettingsSwitchItem(SettingsKey.ShowLocationLabels, SettingsSwitchItem.Representation.Switch),
@@ -418,11 +418,11 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
             SettingsSwitchItem(SettingsKey.ShowEruptiveCenterLabels, SettingsSwitchItem.Representation.Checkmark),
             SettingsSwitchItem(SettingsKey.ShowOtherLabels, SettingsSwitchItem.Representation.Checkmark),
         )),
-    )),
+    ), "locations"),
     SettingsCommonItem.create(CelestiaString("Markers", ""), listOf(
         SettingsSwitchItem(SettingsKey.ShowMarkers, SettingsSwitchItem.Representation.Switch),
         SettingsUnknownTextItem(CelestiaString("Unmark All", ""), settingUnmarkAllID)
-    )),
+    ), "markers"),
     SettingsCommonItem(
         CelestiaString("Reference Vectors", ""),
         listOf(
@@ -437,7 +437,8 @@ private val staticDisplayItems: List<SettingsItem> = listOf(
                 ),
                 footer = CelestiaString("Reference vectors are only visible for the current selected solar system object.", "")
             )
-        )
+        ),
+        "reference_vectors"
     )
 )
 
@@ -454,7 +455,8 @@ private val staticTimeAndRegionItems: List<SettingsItem> = listOf(
                 Pair(0, CelestiaString("Local Time", "")),
                 Pair(1, CelestiaString("UTC", "")),
             ), displayName = SettingsKey.TimeZone.displayName, defaultSelection = 0, showTitle = false)
-        )
+        ),
+        "time_zone"
     ),
     SettingsCommonItem.create(
         CelestiaString(SettingsKey.DateFormat.displayName, ""),
@@ -464,7 +466,8 @@ private val staticTimeAndRegionItems: List<SettingsItem> = listOf(
                 Pair(1, CelestiaString("YYYY MMM DD HH:MM:SS TZ", "")),
                 Pair(2, CelestiaString("UTC Offset", "")),
             ), displayName = SettingsKey.DateFormat.displayName, defaultSelection = 1, showTitle = false)
-        )
+        ),
+        "date_format"
     ),
     SettingsCurrentTimeItem(),
     SettingsCommonItem.create(
@@ -479,7 +482,8 @@ private val staticTimeAndRegionItems: List<SettingsItem> = listOf(
                 Pair(1, CelestiaString("Celsius", "")),
                 Pair(2, CelestiaString("Fahrenheit", "")),
             ), displayName = SettingsKey.TemperatureScale.displayName, defaultSelection = 0, showTitle = true)
-        )
+        ),
+        "measurement_system"
     ),
     SettingsCommonItem.create(
         CelestiaString(SettingsKey.HudDetail.displayName, ""),
@@ -489,7 +493,8 @@ private val staticTimeAndRegionItems: List<SettingsItem> = listOf(
                 Pair(1, CelestiaString("Terse", "")),
                 Pair(2, CelestiaString("Verbose", "")),
             ), displayName = SettingsKey.HudDetail.displayName, defaultSelection = 1, showTitle = false),
-        )
+        ),
+        "hud_detail"
     ),
     SettingsLanguageItem(),
 )
@@ -519,7 +524,8 @@ private val staticRendererItems: List<SettingsItem> = listOf(
                 Pair(1, CelestiaString("Medium", "")),
                 Pair(2, CelestiaString("High", "")),
             ), displayName = SettingsKey.Resolution.displayName, defaultSelection = 1, showTitle = false)
-        )
+        ),
+        "resolution"
     ),
     SettingsCommonItem(
         CelestiaString(SettingsKey.StarStyle.displayName, ""),
@@ -540,7 +546,8 @@ private val staticRendererItems: List<SettingsItem> = listOf(
                     SettingsSliderItem(SettingsKey.TintSaturation, 0.0, 1.0),
                 ), footer = CelestiaString("Tinted illumination saturation setting is only effective with Blackbody star colors.", "")
             )
-        )
+        ),
+        "star_style"
     ),
     SettingsCommonItem(CelestiaString("Render Parameters", ""), listOf(
         SettingsCommonItem.Section(listOf(
@@ -552,14 +559,14 @@ private val staticRendererItems: List<SettingsItem> = listOf(
             SettingsSliderItem(SettingsKey.FaintestVisible, 3.0, 12.0),
             SettingsSliderItem(SettingsKey.GalaxyBrightness, 0.0, 1.0)
         )),
-    )),
+    ), "render_parameters"),
     SettingsRefreshRateItem(),
     SettingsCommonItem(CelestiaString("Advanced", ""), listOf(
         SettingsCommonItem.Section(listOf(
             SettingsPreferenceSwitchItem(PreferenceManager.PredefinedKey.FullDPI, "HiDPI", true),
             SettingsPreferenceSwitchItem(PreferenceManager.PredefinedKey.MSAA, "Anti-aliasing")
         ),  footer =  CelestiaString("Configuration will take effect after a restart.", ""))
-    )),
+    ),"advanced"),
     SettingsRenderInfoItem()
 )
 
@@ -574,7 +581,8 @@ private val staticAdvancedItems: List<SettingsItem> = listOf(
                 ),
                 footer = CelestiaString("Configuration will take effect after a restart.", "")
             )
-        )
+        ),
+        "interaction"
     ),
     SettingsCommonItem(
         CelestiaString("Game Controller", ""),
@@ -603,7 +611,8 @@ private val staticAdvancedItems: List<SettingsItem> = listOf(
                 ),
                 header = CelestiaString("Thumbsticks", ""),
             )
-        )
+        ),
+        "game_controller"
     ),
     SettingsDataLocationItem(),
     SettingsCommonItem(
@@ -618,7 +627,8 @@ private val staticAdvancedItems: List<SettingsItem> = listOf(
                     ), displayName = SettingsKey.ScriptSystemAccessPolicy.displayName, defaultSelection = 0, showTitle = true, subtitle = CelestiaString("Lua scripts' access to the file system", ""))
                 ),
             )
-        )
+        ),
+        "security"
     ),
 )
 
@@ -642,7 +652,8 @@ private val staticOtherItems: List<SettingsItem> = listOf(
         listOf(
             SettingsActionItem(CelestiaString("Toggle FPS Display", ""), 0x60),
             SettingsActionItem(CelestiaString("Toggle Console Display", ""), 0x7E)
-        )
+        ),
+        "debug"
     ),
     SettingsAboutItem()
 )
@@ -670,12 +681,12 @@ val mainSettingSectionsAfterPlus: List<CommonSectionV2> = listOf(
     CommonSectionV2(staticOtherItems, ""),
 )
 
-class SettingsCommonItem(override val name: String, val sections: List<Section>) : SettingsItem, Serializable {
+class SettingsCommonItem(override val name: String, val sections: List<Section>, val route: String) : SettingsItem, Serializable {
     class Section(val rows: List<SettingsItem>, val header: String? = "", val footer: String? = null) : Serializable
 
     companion object {
-        fun create(name: String, items: List<SettingsItem>): SettingsCommonItem {
-            return SettingsCommonItem(name, listOf(Section(items)))
+        fun create(name: String, items: List<SettingsItem>, route: String): SettingsCommonItem {
+            return SettingsCommonItem(name, listOf(Section(items)), route)
         }
     }
 }

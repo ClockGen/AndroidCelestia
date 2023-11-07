@@ -11,6 +11,7 @@
 
 package space.celestia.mobilecelestia.settings
 
+import RenderInfoScreen
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
@@ -37,21 +38,27 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import space.celestia.celestia.AppCore
 import space.celestia.mobilecelestia.common.CelestiaExecutor
+import space.celestia.mobilecelestia.common.CommonSectionV2
 import space.celestia.mobilecelestia.common.NavigationFragment
 import space.celestia.mobilecelestia.compose.Mdc3Theme
 import space.celestia.mobilecelestia.control.CameraControlContainerFragment
 import space.celestia.mobilecelestia.control.CameraControlScreen
 import space.celestia.mobilecelestia.control.ObserverModeScreen
 import space.celestia.mobilecelestia.purchase.FontSettingFragment
+import space.celestia.mobilecelestia.settings.viewmodel.SettingsViewModel
 import space.celestia.mobilecelestia.utils.CelestiaString
+import space.celestia.mobilecelestia.utils.getSerializableValue
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -80,15 +87,22 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun getCurrentTopAppBarTitle(controller: NavController): String {
-        return when (controller.currentBackStackEntry?.destination?.route) {
+    private fun getCurrentTopAppBarTitle(controller: NavController, sections: List<CommonSectionV2>): String {
+        val backStackEntry = controller.currentBackStackEntry ?: return ""
+        return when (backStackEntry.destination.route) {
             ROUTE_SETTINGS_LIST -> CelestiaString("Settings", "")
             ROUTE_SETTINGS_LANGUAGE -> CelestiaString("Language", "")
             ROUTE_SETTINGS_REFRESH_RATE -> CelestiaString("Frame Rate", "")
             ROUTE_SETTINGS_ABOUT -> CelestiaString("About", "")
             ROUTE_SETTINGS_CURRENT_TIME -> CelestiaString("Current Time", "")
             ROUTE_SETTINGS_DATA_LOCATION -> CelestiaString("Data Location", "")
-            else -> "Unknown"
+            ROUTE_SETTINGS_COMMON -> {
+                val route = backStackEntry.arguments?.getString(
+                    ROUTE_SETTINGS_COMMON_ARGUMENT_ITEM_KEY, "") ?: return ""
+                return findItem(route, sections)?.name ?: ""
+            }
+            ROUTE_SETTINGS_RENDER_INFO -> CelestiaString("Render Info", "")
+            else -> ""
         }
     }
 
@@ -109,12 +123,20 @@ class SettingsFragment : Fragment() {
             is SettingsDataLocationItem -> {
                 navController.navigate(ROUTE_SETTINGS_DATA_LOCATION)
             }
+            is SettingsCommonItem -> {
+                navController.navigate("settings/common/${item.route}")
+            }
+            is SettingsRenderInfoItem -> {
+                navController.navigate(ROUTE_SETTINGS_RENDER_INFO)
+            }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MainScreen() {
+        val viewModel: SettingsViewModel = hiltViewModel()
+        val sections = if (viewModel.purchaseManager.canUseInAppPurchase()) mainSettingSectionsBeforePlus + celestiaPlusSettingSection + mainSettingSectionsAfterPlus else mainSettingSectionsBeforePlus + mainSettingSectionsAfterPlus
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
         val navController = rememberNavController()
         var title by remember {
@@ -124,7 +146,7 @@ class SettingsFragment : Fragment() {
         DisposableEffect(navController) {
             val listener = NavController.OnDestinationChangedListener { controller, _, _ ->
                 canPop = controller.previousBackStackEntry != null
-                title = getCurrentTopAppBarTitle(controller)
+                title = getCurrentTopAppBarTitle(controller, sections)
             }
             navController.addOnDestinationChangedListener(listener)
             onDispose {
@@ -149,7 +171,7 @@ class SettingsFragment : Fragment() {
                 composable(ROUTE_SETTINGS_LIST) {
                     SettingsListScreen(paddingValues = paddingValues, itemHandler = {
                         navigateToItem(it, navController)
-                    }, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
+                    }, sections = sections,  modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
                 }
                 composable(ROUTE_SETTINGS_LANGUAGE) {
                     LanguageSettingsScreen(paddingValues = paddingValues, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
@@ -170,8 +192,28 @@ class SettingsFragment : Fragment() {
                 composable(ROUTE_SETTINGS_DATA_LOCATION) {
                     DataLocationSettingsScreen(paddingValues = paddingValues, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
                 }
+                composable(ROUTE_SETTINGS_COMMON, arguments = listOf(navArgument(
+                    ROUTE_SETTINGS_COMMON_ARGUMENT_ITEM_KEY) { type = NavType.StringType })) { backStackEntry ->
+                    val itemRoute = backStackEntry.arguments?.getString(ROUTE_SETTINGS_COMMON_ARGUMENT_ITEM_KEY, "") ?: return@composable
+                    val item = findItem(itemRoute, sections) ?: return@composable
+                    CommonSettingsScreen(paddingValues = paddingValues, item = item, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
+                }
+                composable(ROUTE_SETTINGS_RENDER_INFO) {
+                    RenderInfoScreen(paddingValues = paddingValues, modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection))
+                }
             }
         }
+    }
+
+    private fun findItem(route: String, sections: List<CommonSectionV2>): SettingsCommonItem? {
+        for (section in sections) {
+            for (item in section.items) {
+                if (item is SettingsCommonItem && item.route == route) {
+                    return item
+                }
+            }
+        }
+        return null
     }
 
 //    fun pushMainSettingItem(item: SettingsItem) {
@@ -238,5 +280,8 @@ class SettingsFragment : Fragment() {
         private const val ROUTE_SETTINGS_ABOUT = "settings/about"
         private const val ROUTE_SETTINGS_CURRENT_TIME = "settings/current_time"
         private const val ROUTE_SETTINGS_DATA_LOCATION = "settings/data_location"
+        private const val ROUTE_SETTINGS_COMMON_ARGUMENT_ITEM_KEY = "item"
+        private const val ROUTE_SETTINGS_COMMON = "settings/common/{item}"
+        private const val ROUTE_SETTINGS_RENDER_INFO = "settings/render_info"
     }
 }

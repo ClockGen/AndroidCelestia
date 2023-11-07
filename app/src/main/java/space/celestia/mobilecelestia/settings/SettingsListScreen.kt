@@ -20,18 +20,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.hilt.navigation.compose.hiltViewModel
 import space.celestia.mobilecelestia.R
+import space.celestia.mobilecelestia.common.CommonSectionV2
 import space.celestia.mobilecelestia.compose.Footer
 import space.celestia.mobilecelestia.compose.Header
 import space.celestia.mobilecelestia.compose.Separator
 import space.celestia.mobilecelestia.compose.TextRow
-import space.celestia.mobilecelestia.settings.viewmodel.SettingsViewModel
 
 @Composable
-fun SettingsListScreen(paddingValues: PaddingValues, itemHandler: (SettingsItem) -> Unit, modifier: Modifier = Modifier) {
-    val viewModel: SettingsViewModel = hiltViewModel()
-    val sections = if (viewModel.purchaseManager.canUseInAppPurchase()) mainSettingSectionsBeforePlus + celestiaPlusSettingSection + mainSettingSectionsAfterPlus else mainSettingSectionsBeforePlus + mainSettingSectionsAfterPlus
+fun SettingsListScreen(paddingValues: PaddingValues, sections: List<CommonSectionV2>, itemHandler: (SettingsItem) -> Unit, modifier: Modifier = Modifier) {
     LazyColumn(modifier = modifier, contentPadding = paddingValues) {
         for (index in sections.indices) {
             val section = sections[index]
