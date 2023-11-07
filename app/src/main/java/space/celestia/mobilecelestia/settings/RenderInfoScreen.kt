@@ -11,7 +11,7 @@
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -28,8 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.dimensionResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -64,10 +62,8 @@ fun RenderInfoScreen(paddingValues: PaddingValues, modifier: Modifier = Modifier
             Text(text = info, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
         }
     } else {
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
     }
 }

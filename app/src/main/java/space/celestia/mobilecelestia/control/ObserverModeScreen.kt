@@ -30,12 +30,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import space.celestia.celestia.AppCore
 import space.celestia.celestia.Observer
 import space.celestia.celestia.Selection
 import space.celestia.mobilecelestia.R
+import space.celestia.mobilecelestia.common.CelestiaExecutor
 import space.celestia.mobilecelestia.compose.FooterLink
 import space.celestia.mobilecelestia.compose.Header
 import space.celestia.mobilecelestia.compose.ObjectNameAutoComplete
@@ -111,9 +113,7 @@ fun ObserverModeScreen(paddingValues: PaddingValues, openLink: (String) -> Unit,
         })
 
         FilledTonalButton(modifier = internalViewModifier, onClick = {
-            scope.launch(viewModel.executor.asCoroutineDispatcher()) {
-                applyObserverMode(referenceObjectPath = referenceObjectPath, targetObjectPath = targetObjectPath, coordinateSystem = selectedCoordinateSystem, viewModel.appCore)
-            }
+            applyObserverMode(referenceObjectPath = referenceObjectPath, targetObjectPath = targetObjectPath, coordinateSystem = selectedCoordinateSystem, viewModel.appCore, scope, viewModel.executor)
         }) {
             Text(text = CelestiaString("OK", ""))
         }
@@ -121,7 +121,7 @@ fun ObserverModeScreen(paddingValues: PaddingValues, openLink: (String) -> Unit,
     }
 }
 
-private fun applyObserverMode(referenceObjectPath: String, targetObjectPath: String, coordinateSystem: Int, appCore: AppCore) {
+private fun applyObserverMode(referenceObjectPath: String, targetObjectPath: String, coordinateSystem: Int, appCore: AppCore, scope: CoroutineScope, executor: CelestiaExecutor) = scope.launch(executor.asCoroutineDispatcher()) {
     val ref = if (referenceObjectPath.isEmpty()) Selection() else appCore.simulation.findObject(referenceObjectPath)
     val target = if (targetObjectPath.isEmpty()) Selection() else appCore.simulation.findObject(targetObjectPath)
     appCore.simulation.activeObserver.setFrame(coordinateSystem, ref, target)

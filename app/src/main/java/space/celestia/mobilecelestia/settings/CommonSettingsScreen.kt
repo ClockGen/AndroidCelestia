@@ -167,6 +167,7 @@ private fun SettingEntry(item: SettingsItem) {
                     pendingSelectionIndex = it
                 }
             ) {
+                showSelectionDialog = false
                 if (pendingSelectionIndex >= 0 && pendingSelectionIndex < item.options.size) {
                     val value = item.options[pendingSelectionIndex].first
                     selected = value

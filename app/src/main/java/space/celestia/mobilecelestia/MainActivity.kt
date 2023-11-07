@@ -10,7 +10,6 @@
  */
 
 package space.celestia.mobilecelestia
-
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
@@ -75,7 +74,6 @@ import space.celestia.mobilecelestia.info.InfoFragment
 import space.celestia.mobilecelestia.info.model.*
 import space.celestia.mobilecelestia.loading.LoadingFragment
 import space.celestia.mobilecelestia.purchase.PurchaseManager
-import space.celestia.mobilecelestia.purchase.SubscriptionBackingFragment
 import space.celestia.mobilecelestia.resource.*
 import space.celestia.mobilecelestia.resource.model.*
 import space.celestia.mobilecelestia.search.SearchFragment
@@ -118,8 +116,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main),
     GoToContainerFragment.Listener,
     ResourceItemFragment.Listener,
     SettingsFragment.Listener,
-    CommonWebFragment.Listener,
-    SubscriptionBackingFragment.Listener {
+    CommonWebFragment.Listener {
 
     @AppSettings
     @Inject
