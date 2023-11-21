@@ -56,20 +56,20 @@ abstract class SubscriptionBackingFragment : NavigationFragment.SubFragment() {
 
     @Composable
     private fun MainScreen() {
-        val viewModel: SettingsViewModel = hiltViewModel()
-        if (!viewModel.purchaseManager.canUseInAppPurchase()) {
-            Box(modifier = Modifier.fillMaxSize().systemBarsPadding(), contentAlignment = Alignment.Center) {
-                EmptyHint(text = CelestiaString("This feature is not supported.", ""))
-            }
-        } else if (viewModel.purchaseManager.purchaseToken() == null) {
-            Box(modifier = Modifier.fillMaxSize().systemBarsPadding(), contentAlignment = Alignment.Center) {
-                EmptyHint(text = CelestiaString("This feature is only available to Celestia PLUS users.", ""), actionText = CelestiaString("Get Celestia PLUS", "")) {
-                    listener?.requestOpenSubscriptionManagement()
-                }
-            }
-        } else {
+//        val viewModel: SettingsViewModel = hiltViewModel()
+//        if (!viewModel.purchaseManager.canUseInAppPurchase()) {
+//            Box(modifier = Modifier.fillMaxSize().systemBarsPadding(), contentAlignment = Alignment.Center) {
+//                EmptyHint(text = CelestiaString("This feature is not supported.", ""))
+//            }
+//        } else if (viewModel.purchaseManager.purchaseToken() == null) {
+//            Box(modifier = Modifier.fillMaxSize().systemBarsPadding(), contentAlignment = Alignment.Center) {
+//                EmptyHint(text = CelestiaString("This feature is only available to Celestia PLUS users.", ""), actionText = CelestiaString("Get Celestia PLUS", "")) {
+//                    listener?.requestOpenSubscriptionManagement()
+//                }
+//            }
+//        } else {
             MainView()
-        }
+//        }
     }
 
     @Composable
